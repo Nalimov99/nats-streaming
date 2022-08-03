@@ -1,0 +1,27 @@
+#docker-compose up
+version: "3.7"
+
+networks:
+  shared-network:
+    driver: bridge
+
+services:
+  db:
+    container_name: sale_db
+    networks:
+      - shared-network
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - 5432:5432
+  nats-streaming:
+    container_name: nats_streaming
+    networks:
+      - shared-network
+    image: nats-streaming:0.24.6
+    command:
+      - "--cluster_id"
+      - nats-streaming
+    ports:
+      - "14222:4222"
