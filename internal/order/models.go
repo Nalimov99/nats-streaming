@@ -55,3 +55,8 @@ type Order struct {
 	Payment           Payment     `json:"payment"`
 	Items             []OrderItem `json:"items"`
 }
+
+type OrderDBRow struct {
+	Order_uid string `db:"order_uid"`
+	Data      []byte `db:"data"`
+}

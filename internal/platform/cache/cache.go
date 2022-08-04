@@ -20,9 +20,9 @@ func (c *Cache) Set(key string, value []byte) {
 }
 
 // NewCache knows how to initialize Cache
-func NewCache() *Cache {
+func NewCache(initialCacheItems map[string][]byte) *Cache {
 	var cache Cache
-	cache.items = make(map[string][]byte)
+	cache.items = initialCacheItems
 	return &cache
 }
 

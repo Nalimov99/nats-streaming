@@ -19,12 +19,17 @@ func Add(db *sqlx.DB, key string, data []byte) error {
 }
 
 // List returns all known Orders
-func List(db *sqlx.DB) (map[string]Order, error) {
+func List(db *sqlx.DB) (map[string][]byte, error) {
 	q := `SELECT order_uid, data FROM orders;`
-	orders := make(map[string]Order)
-	if err := db.Select(orders, q); err != nil {
+	orders := []OrderDBRow{}
+	if err := db.Select(&orders, q); err != nil {
 		return nil, err
 	}
 
-	return orders, nil
+	items := make(map[string][]byte)
+	for _, item := range orders {
+		items[item.Order_uid] = item.Data
+	}
+
+	return items, nil
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/nats-io/stan.go"
 	"go.uber.org/zap"
 )
 
@@ -21,6 +22,39 @@ type OrderSubscription struct {
 	Cache  *cache.Cache
 	Logger *zap.Logger
 	DB     *sqlx.DB
+}
+
+// NewOrderSubcription know how to initilize OrderSubscription
+func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) *OrderSubscription {
+	items := make(map[string][]byte)
+	if dbItems, err := order.List(db); err == nil {
+		items = dbItems
+	}
+
+	orderSubscription := OrderSubscription{
+		Cache:  cache.NewCache(items),
+		Logger: logger,
+		DB:     db,
+	}
+
+	sc, err := stan.Connect("nats-streaming", "sub", stan.NatsURL(":14222"))
+	if err != nil {
+		logger.Panic("Failed to connect nats-streaming: ", zap.Error(err))
+	}
+	defer sc.Close()
+
+	_, err = sc.Subscribe("orders", func(msg *stan.Msg) {
+		if err := orderSubscription.AddOrUpdate(msg.Data); err != nil {
+			logger.Info("Upserting error",
+				zap.Error(err),
+			)
+		}
+	})
+	if err != nil {
+		logger.Panic("Could not subscribe to the orders subject", zap.Error(err))
+	}
+
+	return &orderSubscription
 }
 
 // isValid knows how to unmarshal bytes to the Order struct.
