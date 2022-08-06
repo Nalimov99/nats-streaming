@@ -24,7 +24,8 @@ func main() {
 
 	// =======================================================
 	// Setup orderSubscription
-	orderSubscription := subscription.NewOrderSubscription(logger, db)
+	orderSubscription, sc := subscription.NewOrderSubscription(logger, db)
+	defer sc.Close()
 
 	// =======================================================
 	// Start API service

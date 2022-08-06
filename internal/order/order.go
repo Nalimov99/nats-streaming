@@ -33,3 +33,13 @@ func List(db *sqlx.DB) (map[string][]byte, error) {
 
 	return items, nil
 }
+
+func Update(db *sqlx.DB, id string, data []byte) error {
+	q := `UPDATE orders SET data = $1 WHERE order_uid = $2`
+
+	if _, err := db.Exec(q, data, id); err != nil {
+		return err
+	}
+
+	return nil
+}

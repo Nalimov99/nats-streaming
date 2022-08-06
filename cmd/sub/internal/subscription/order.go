@@ -7,16 +7,23 @@ import (
 
 	"encoding/json"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nats-io/stan.go"
 	"go.uber.org/zap"
 )
 
+var validate *validator.Validate
+
 var (
 	ErrInvalidItem = errors.New("Item is not valid")
 	ErrInvalidID   = errors.New("Item ID is not valid")
 )
+
+func init() {
+	validate = validator.New()
+}
 
 type OrderSubscription struct {
 	Cache  *cache.Cache
@@ -25,7 +32,7 @@ type OrderSubscription struct {
 }
 
 // NewOrderSubcription know how to initilize OrderSubscription
-func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) *OrderSubscription {
+func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) (*OrderSubscription, stan.Conn) {
 	items := make(map[string][]byte)
 	if dbItems, err := order.List(db); err == nil {
 		items = dbItems
@@ -41,7 +48,6 @@ func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) *OrderSubscription {
 	if err != nil {
 		logger.Panic("Failed to connect nats-streaming: ", zap.Error(err))
 	}
-	defer sc.Close()
 
 	_, err = sc.Subscribe("orders", func(msg *stan.Msg) {
 		if err := orderSubscription.AddOrUpdate(msg.Data); err != nil {
@@ -49,12 +55,12 @@ func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) *OrderSubscription {
 				zap.Error(err),
 			)
 		}
-	})
+	}, stan.DeliverAllAvailable())
 	if err != nil {
 		logger.Panic("Could not subscribe to the orders subject", zap.Error(err))
 	}
 
-	return &orderSubscription
+	return &orderSubscription, sc
 }
 
 // isValid knows how to unmarshal bytes to the Order struct.
@@ -62,6 +68,10 @@ func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) *OrderSubscription {
 func (o *OrderSubscription) isValid(msg []byte) (*order.Order, error) {
 	var item order.Order
 	if err := json.Unmarshal(msg, &item); err != nil {
+		return nil, ErrInvalidItem
+	}
+
+	if err := validate.Struct(item); err != nil {
 		return nil, ErrInvalidItem
 	}
 
@@ -85,12 +95,11 @@ func (o *OrderSubscription) AddOrUpdate(msg []byte) error {
 		return nil
 	}
 
-	if _, err = o.Get(item.OrderUID); err != nil {
+	if _, err = o.Cache.Get(item.OrderUID); err != nil {
 		return o.add(item.OrderUID, msg)
 	}
 
-	o.update(item)
-	return nil
+	return o.update(item.OrderUID, msg)
 }
 
 // add knows how to set item in the Cache
@@ -100,8 +109,9 @@ func (o *OrderSubscription) add(key string, data []byte) error {
 }
 
 // update knows how to update item in the Cache
-func (o *OrderSubscription) update(order *order.Order) {
-
+func (o *OrderSubscription) update(key string, data []byte) error {
+	o.Cache.Set(key, data)
+	return order.Update(o.DB, key, data)
 }
 
 // Get knows how to retrieve item from Cache by key. It will error if the
