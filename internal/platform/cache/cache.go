@@ -37,3 +37,8 @@ func (c *Cache) Get(key string) (*[]byte, error) {
 
 	return &item, nil
 }
+
+// GetItems returns all known Orders
+func (c *Cache) GetItems() map[string][]byte {
+	return c.items
+}

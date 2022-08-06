@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"nats-server/cmd/sub/internal/subscription"
-	"nats-server/internal/order"
 	"net/http"
 	"text/template"
 
@@ -28,8 +27,6 @@ func (o *OrderAPI) RetriveOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OrderAPI) RetrieveList(w http.ResponseWriter, r *http.Request) {
-	list, _ := order.List(o.DB)
-
 	t, _ := template.ParseFiles("templates/index.html")
-	t.Execute(w, list)
+	t.Execute(w, o.OrderSubscription.Cache.GetItems())
 }
