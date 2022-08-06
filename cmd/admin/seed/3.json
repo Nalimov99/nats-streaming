@@ -1,0 +1,50 @@
+
+{
+	"order_uid": "2b6c8abc-5a79-4210-8ffc-c5c26f396307",
+	"track_number": "ddddd",
+	"entry": "dddd",
+	"delivery": {
+		"name": "aaa aa",
+		"phone": "+9720000000",
+		"zip": "23dd32",
+		"city": "City asdsad",
+		"address": "aaaa",
+		"region": "reggion",
+		"email": "test3@gmail.com"
+	},
+	"payment": {
+		"transaction": "b563feb7b2b84b6test2",
+		"request_id": "4",
+		"currency": "RUB",
+		"provider": "visa",
+		"amount": 1810,
+		"payment_dt": 1637907447,
+		"bank": "alpha",
+		"delivery_cost": 1501,
+		"goods_total": 312,
+		"custom_fee": 99
+	},
+	"items": [
+		{
+		"chrt_id": 9934931,
+		"track_number": "DDDD",
+		"price": 459,
+		"rid": "ab4219087a764ae0btest2",
+		"name": "Mascaras1",
+		"sale": 301,
+		"size": "2",
+		"total_price": 3171,
+		"nm_id": 23892123,
+		"brand": "Vivienneasd Sabo",
+		"status": 201
+		}
+	],
+	"locale": "ru",
+	"internal_signature": "123",
+	"customer_id": "22",
+	"delivery_service": "d",
+	"shardkey": "10",
+	"sm_id": 100,
+	"date_created": "2021-11-27T06:22:19Z",
+	"oof_shard": "2"
+}

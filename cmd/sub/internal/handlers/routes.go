@@ -16,7 +16,7 @@ func API(o *subscription.OrderSubscription, db *sqlx.DB) *chi.Mux {
 		DB:                db,
 	}
 	routes.Get("/order/{id}", orderAPI.RetriveOrder)
-	routes.Get("/", orderAPI.List)
+	routes.Get("/", orderAPI.OrderList)
 
 	return routes
 }
