@@ -31,7 +31,7 @@ func main() {
 	// Start API service
 	api := http.Server{
 		Addr:    ":3020",
-		Handler: handlers.API(orderSubscription),
+		Handler: handlers.API(orderSubscription, db),
 	}
 	api.ListenAndServe()
 }
