@@ -26,7 +26,7 @@ func (o *OrderAPI) RetriveOrder(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, string(*res))
 }
 
-func (o *OrderAPI) RetrieveList(w http.ResponseWriter, r *http.Request) {
+func (o *OrderAPI) List(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("templates/index.html")
 	t.Execute(w, o.OrderSubscription.Cache.GetItems())
 }
