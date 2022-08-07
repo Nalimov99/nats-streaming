@@ -82,7 +82,7 @@ func (o *OrderTests) initializeOrderSubscription(t *testing.T) {
 	o.StanConnection = sc
 }
 
-// startDb knows how to initilize new docker container with nats
+// startDb knows how to initilize new docker container with postgres
 func (o *OrderTests) startDb(t *testing.T) {
 	t.Helper()
 
@@ -295,6 +295,7 @@ func (o *OrderTests) Publish(t *testing.T) {
 	time.Sleep(2 * time.Second)
 }
 
+// CheckPublished knows how to compare published items in Cache
 func (o *OrderTests) CheckPublished(t *testing.T) {
 	items := o.Subscription.Cache.GetItems()
 	keyLenght := 0
@@ -328,6 +329,7 @@ func (o *OrderTests) CheckPublished(t *testing.T) {
 	o.PublishedMap = publishedMap
 }
 
+// CheckDB knows how to compare published items in DB
 func (o *OrderTests) CheckDB(t *testing.T) {
 	items, err := order.List(o.DB)
 	if err != nil {
