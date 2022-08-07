@@ -1,0 +1,14 @@
+{
+	"nats": {
+		"port": ":14223",
+		"client_id": "sub",
+		"cluster_id": "test-cluster"
+	},
+	"db": {
+		"user": "postgres",
+		"password": "1234",
+		"host": "localhost",
+		"path": "postgres",
+		"port": "5433"
+	}
+}

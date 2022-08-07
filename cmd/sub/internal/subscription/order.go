@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"errors"
+	"nats-server/internal/config"
 	"nats-server/internal/order"
 	"nats-server/internal/platform/cache"
 
@@ -32,7 +33,7 @@ type OrderSubscription struct {
 }
 
 // NewOrderSubcription know how to initilize OrderSubscription
-func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) (*OrderSubscription, stan.Conn) {
+func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB, cfg config.NatsConfig) (*OrderSubscription, stan.Conn) {
 	items := make(map[string][]byte)
 	if dbItems, err := order.List(db); err == nil {
 		items = dbItems
@@ -44,9 +45,9 @@ func NewOrderSubscription(logger *zap.Logger, db *sqlx.DB) (*OrderSubscription, 
 		DB:     db,
 	}
 
-	sc, err := stan.Connect("nats-streaming", "sub", stan.NatsURL(":14222"))
+	sc, err := stan.Connect(cfg.ClusterID, cfg.ClienID, stan.NatsURL(cfg.Port))
 	if err != nil {
-		logger.Panic("Failed to connect nats-streaming: ", zap.Error(err))
+		logger.Panic("Failed to connect nats-streaming", zap.Error(err))
 	}
 
 	_, err = sc.Subscribe("orders", func(msg *stan.Msg) {

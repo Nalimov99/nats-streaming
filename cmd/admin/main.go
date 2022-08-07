@@ -3,27 +3,25 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"nats-server/internal/config"
 	"nats-server/internal/platform/database"
 	"nats-server/internal/schema"
-	"os"
-
-	"github.com/nats-io/stan.go"
+	"nats-server/internal/subscription/seed"
 )
 
-const seedDir = "cmd/admin/seed/"
-
 func main() {
+	cfg := config.GetConfig(false)
+
 	flag.Parse()
 	switch flag.Arg(0) {
 	case "migrate":
-		if err := migrate(); err != nil {
+		if err := Migrate(cfg.DB); err != nil {
 			fmt.Print("applying migrations: ", err)
 			break
 		}
 		fmt.Print("migrations complete")
 	case "seed":
-		if err := seed(); err != nil {
+		if _, err := seed.Seed(cfg.Nats); err != nil {
 			fmt.Println("seeding: ", err)
 			break
 		}
@@ -34,8 +32,8 @@ func main() {
 	}
 }
 
-func migrate() error {
-	db, err := database.Open()
+func Migrate(cfg config.DbConfig) error {
+	db, err := database.Open(cfg)
 	if err != nil {
 		return err
 	}
@@ -43,30 +41,6 @@ func migrate() error {
 
 	if err := schema.Migrate(db); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func seed() error {
-	sc, err := stan.Connect("nats-streaming", "pub", stan.NatsURL(":14222"))
-	if err != nil {
-		return err
-	}
-
-	files, err := ioutil.ReadDir(seedDir)
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		data, err := os.ReadFile(seedDir + file.Name())
-		if err != nil {
-			return err
-		}
-
-		if err := sc.Publish("orders", data); err != nil {
-			return err
-		}
 	}
 
 	return nil

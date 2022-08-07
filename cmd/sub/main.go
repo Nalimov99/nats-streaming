@@ -3,6 +3,7 @@ package main
 import (
 	"nats-server/cmd/sub/internal/handlers"
 	"nats-server/cmd/sub/internal/subscription"
+	"nats-server/internal/config"
 	"nats-server/internal/platform/database"
 	"net/http"
 
@@ -16,15 +17,19 @@ func main() {
 	defer logger.Sync()
 
 	// =======================================================
+	// Setup config
+	cfg := config.GetConfig(false)
+
+	// =======================================================
 	// Open DB
-	db, err := database.Open()
+	db, err := database.Open(cfg.DB)
 	if err != nil {
 		logger.Panic("DB openning", zap.Error(err))
 	}
 
 	// =======================================================
 	// Setup orderSubscription
-	orderSubscription, sc := subscription.NewOrderSubscription(logger, db)
+	orderSubscription, sc := subscription.NewOrderSubscription(logger, db, cfg.Nats)
 	defer sc.Close()
 
 	// =======================================================

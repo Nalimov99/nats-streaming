@@ -1,24 +1,25 @@
 package database
 
 import (
+	"nats-server/internal/config"
 	"net/url"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Register postgres database
 )
 
-func Open() (*sqlx.DB, error) {
+func Open(cfg config.DbConfig) (*sqlx.DB, error) {
 	q := url.Values{}
 
 	q.Set("sslmode", "disable")
 	q.Set("timezone", "utc")
-	q.Set("port", "5432")
+	q.Set("port", cfg.Port)
 
 	u := url.URL{
 		Scheme:   "postgres",
-		User:     url.UserPassword("postgres", "1234"),
-		Host:     "localhost",
-		Path:     "postgres",
+		User:     url.UserPassword(cfg.User, cfg.Password),
+		Host:     cfg.Host,
+		Path:     cfg.Path,
 		RawQuery: q.Encode(),
 	}
 
